@@ -7,7 +7,7 @@ import { handleError } from '../../utils';
 
 const token = Cookies.get('token');
 
-function CreateOptionForm({form, setTime, setCreateOptionModal, topicId}) {
+function CreateOptionForm({form, setTime, setCreateOptionModal, topicId, issueId}) {
     const handleSubmit = (e) => {
         e.preventDefault();
         form.validateFields((err, values) => {
@@ -24,11 +24,11 @@ function CreateOptionForm({form, setTime, setCreateOptionModal, topicId}) {
                         text,
                         value,
                         topic_id: topicId,
+                        issue_id: issueId,
                     }
                 }).then(r => {
                     const { code, data } = r.data;
                     if(code === 0) {
-                        console.log('create~~~option', r.data);
                         setTime(create);
                         setCreateOptionModal(false);
                     }

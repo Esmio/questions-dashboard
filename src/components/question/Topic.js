@@ -1,87 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import axios from 'axios';
-import { Table, Button, Pagination, Radio, message, Modal } from 'antd';
+import { Table, Button, message, Modal } from 'antd';
+
 import CreateOptionForm from './CreateOptionForm';
 import CreateTopicForm from './CreateTopicForm';
+import ChoiceOptions from './ChoiceOptions';
+import SelectorOptions from './SelectorOptions';
+import MultiSeletorOptions from './MultiSelectorOptions';
 import { host } from '../../config';
 import { handleError } from '../../utils';
+
+import { convertResult, exportCsv } from './util';
 
 const user = Cookies.getJSON('user');
 const token = Cookies.get('token');
 
-function ChoiceOptions({_id, text, value, setTime}) {
-
-    const deleteOption = (_id) => () =>  {
-        axios({
-            method: 'post',
-            url: `${host}/api/question/option/remove`,
-            headers: {
-                'Authorization': `Berear ${token}`,
-            },
-            data: {
-                option_id: _id
-            }
-        }).then(r => {
-            const { code, data } = r.data;
-            if(code === 0) {
-                console.log('delete option', data);
-                setTime(Date.now());
-                message.success("删除成功！");
-            }
-        }).catch(e => {
-            handleError(e)
-        })
-    }
-    
-    return (
-        <div
-            style={{
-                height: '40px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-            }}
-        >
-            <div>
-                <Radio 
-                    disabled
-                />
-                <span>{text}</span>
-                <span
-                    style={{
-                        fontSize: '12px',
-                    }}
-                >（value: {value}）</span>
-            </div>
-            <Button
-                type="danger"
-                size="small"
-                onClick={deleteOption(_id)}
-            >删除</Button>
-        </div>
-    )
-}
-
 function Topic({issue_id}) {
 
-    let [topic, setTopic] = useState([]);
-    let [time, setTime] = useState(null);
-    let [addOptionModal, setAddOptionModal] = useState(false);
-    let [addTopicModal, setAddTopicModal] = useState(false);
-    let [curTopicId, setCurTopicId] = useState();
+    const [topic, setTopic] = useState([]);
+    const [time, setTime] = useState(null);
+    const [addOptionModal, setAddOptionModal] = useState(false);
+    const [addTopicModal, setAddTopicModal] = useState(false);
+    const [curTopicId, setCurTopicId] = useState();
+    const [result, setResult] = useState([]);
     
     useEffect(() => {
         axios({
             method: 'post',
             url: `${host}/api/question/topic/list`,
+            headers: {
+                'Authorization': `Berear ${token}`,
+            },
             data: {
                 issue_id,
             }
         }).then(r => {
             const { code, data } = r.data;
             if(code === 0) {
-                console.log('topic data', data);
                 setTopic(data.list.map((item, index) => {
                     item.key = index;
                     return item;
@@ -91,6 +47,24 @@ function Topic({issue_id}) {
             handleError(e);
         })
     }, [issue_id, time])
+
+    useEffect(() => {
+        axios({
+            method: 'get',
+            url: `${host}/api/question/result/list?issue_id=${issue_id}`,
+            headers: {
+                'Authorization': `Berear ${token}`
+            },
+        }).then(r => {
+            const { code, data } = r.data;
+            if(code === 0) {
+                setResult(data.results);
+                console.log('topic----result', data.results);
+            }
+        }).catch(e => {
+            handleError(e);
+        })
+    }, [])
 
     const typeDict = {
         'choice': '单选题',
@@ -126,7 +100,7 @@ function Topic({issue_id}) {
             title: '题目',
             dataIndex: 'title',
             key: 'title',
-            width: '200px',
+            width: '300px',
         },
         {
             title: '题型',
@@ -189,19 +163,68 @@ function Topic({issue_id}) {
     const handleAddTopicModalShow = () => {
         setAddTopicModal(true);
     }
-
+    // 表格展开
     const _renderExpend = (record) => {
         const {
             options,
+            other_value,
+            multi,
+            follow,
+            textarea,
             type,
         } = record; 
-        return options.map((item, index) => (
-            <ChoiceOptions 
-                key={index}
-                setTime={setTime}
-                {...item}
-            />
-        ))
+        switch(type) {
+            case 'choice': 
+                return options.map((item, index) => (
+                    <ChoiceOptions 
+                        key={index}
+                        setTime={setTime}
+                        {...item}
+                    />
+                ))
+            case 'selector': 
+                /*
+                return options.map((item, index) => (
+                    <SelectorOptions 
+                        key={index}
+                        setTime={setTime}
+                        {...item}
+                    />
+                ))
+                */
+                return '目前问卷前端使用默认ages数组';
+            case 'placepicker':
+                return '固定模块';
+            case 'input': 
+                return (
+                    <div>
+                        <div>此为问答题</div>
+                        {
+                            !!follow ? 
+                            <div>(条件展示)题号：{follow.number}-提值：{follow.value}</div>
+                            : ''
+                        }
+                        {
+                            !!textarea ? <div>是textarea</div> : ''
+                        }
+                    </div>
+                )
+            case 'multiselector': 
+                return options.map((item, index) => (
+                    <MultiSeletorOptions 
+                        key={index}
+                        setTime={setTime}
+                        {...item}
+                    />
+                ))
+            default:
+                return '空空如也';
+        }        
+    }
+
+    const handleExportClicked = () => {
+        const { csv } =  convertResult(result, topic);
+        exportCsv(csv);
     }
 
     return (
@@ -223,14 +246,26 @@ function Topic({issue_id}) {
                 >
                     添加题目
                 </Button>
+                <Button
+                    onClick={handleExportClicked}
+                >导出结果</Button>
             </div>
-            <Table
-                bordered
-                columns={columns}
-                expandedRowRender={record => _renderExpend(record)}
-                dataSource={topic}
-                pagination={false}
-            />
+            <div
+                style={{
+                    maxHeight: 'calc(100vh - 266px)',
+                    overflowY: 'scroll',
+                    paddingBottom: '10px',
+                    boxSizing: 'border-box',
+                }}
+            >
+                <Table
+                    bordered
+                    columns={columns}
+                    expandedRowRender={record => _renderExpend(record)}
+                    dataSource={topic}
+                    pagination={false}
+                />
+            </div>
             <Modal
                 visible={addOptionModal}
                 title="添加选项"
@@ -241,6 +276,7 @@ function Topic({issue_id}) {
                     setTime={setTime}
                     setCreateOptionModal={setAddOptionModal}
                     topicId={curTopicId}
+                    issueId={issue_id}
                 />
             </Modal>
             <Modal

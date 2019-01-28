@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Form, Input, InputNumber, Button, Radio, Select } from 'antd';
+import { Form, Input, InputNumber, Button, Radio, Select, Switch } from 'antd';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { host } from '../../config';
@@ -11,7 +11,9 @@ const token = Cookies.get('token');
 
 function CreateOptionForm({form, setTime, setCreateTopicModal, issueId}) {
 
-    let [type, setType] = useState();
+    let [ type, setType ] = useState();
+    let [ showOther, setShowOther ] = useState(false);
+    let [ showFollow, setShowFollow ] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -21,22 +23,38 @@ function CreateOptionForm({form, setTime, setCreateTopicModal, issueId}) {
                     type,
                     title,
                     number,
-                    required
+                    required,
+                    other_value,
+                    multi,
+                    textarea,
+                    follow_number,
+                    follow_value,
                 } = values;
                 const create = Date.now();
+                console.log('dborf-----', textarea);
+                const follow = {
+                    number: follow_number,
+                    value: follow_value,
+                }
+                const followStr = JSON.stringify(follow);
+                const data = {
+                    type,
+                    title,
+                    number,
+                    required,
+                    other_value,
+                    multi,
+                    textarea,
+                    issue_id: issueId,
+                }
+                if(follow_number && follow_value) data.follow = followStr
                 axios({
                     method: 'post',
                     url: `${host}/api/question/topic`,
                     headers: {
                         'Authorization': `Berear ${token}`
                     },
-                    data: {
-                        type,
-                        title,
-                        number,
-                        required,
-                        issue_id: issueId,
-                    }
+                    data,
                 }).then(r => {
                     const { code, data } = r.data;
                     if(code === 0) {
@@ -52,27 +70,41 @@ function CreateOptionForm({form, setTime, setCreateTopicModal, issueId}) {
     }
 
     const handleTypeChange = (type) => {
-        console.log('type', type);
         setType(type);
+    }
+
+    const handleShowOtherChange = (checked) => {
+        setShowOther(checked);
+    }
+
+    const handleShowFollowChange = (checked) => {
+        setShowFollow(checked);
     }
 
     const { getFieldDecorator } = form;
 
+    const formItemLayout = {
+        labelCol: { span: 6 },
+        wrapperCol: { span: 14 },
+    };
+
     return (
         <Form onSubmit={handleSubmit}>
             <Form.Item
+                {...formItemLayout}
                 label="题号"
                 hasFeedback
             >
                 {
                     getFieldDecorator('number', {
-                        rules: [{ required: true, message: '请输入题号!' }],
+                        rules: [{ required: true, pattern: /^-?[0-9.]+$/,  message: '题号为数字，不能为空！' }],
                       })(
                         <Input placeholder="题号" />
                       )
                 }
             </Form.Item>
             <Form.Item
+                {...formItemLayout}
                 label="选择题型"
                 hasFeedback
             >
@@ -94,28 +126,42 @@ function CreateOptionForm({form, setTime, setCreateTopicModal, issueId}) {
                 )}
             </Form.Item>
             {
-                type === 'choice' || type === 'multiselector' ? 
+                type === 'choice' || type === 'multiselector' ?
                 <Form.Item
+                    {...formItemLayout}
+                    label="是否有其他值"
+                >
+                    {getFieldDecorator('switch_1', { valuePropName: 'checked' })(
+                    <Switch onChange={handleShowOtherChange} />
+                    )}
+                </Form.Item> : ''
+            }
+            {
+                showOther && ( type === 'choice' || type === 'multiselector' ) ? 
+                <Form.Item
+                    {...formItemLayout}
                     label="其他选项值"
                 >
-                    {getFieldDecorator('otherValue', { initialValue: 5 })(
-                        <InputNumber min={1} max={10} />
+                    {getFieldDecorator('other_value', { initialValue: 5 })(
+                        <InputNumber min={1} max={15} />
                     )}
                 </Form.Item> : ''
             }
             {
                 type === 'multiselector' ? 
                 <Form.Item
-                    label="最多选择个数(默认不限)"
+                    {...formItemLayout}
+                    label="多选限制个数"
                 >
-                    {getFieldDecorator('multi', { initialValue: 3 })(
-                        <InputNumber min={2} max={10} />
+                    {getFieldDecorator('multi', { initialValue: 0 })(
+                        <InputNumber min={0} max={10} />
                     )}
                 </Form.Item> : ''
             }
             {
                 type === 'input' ? 
                 <Form.Item
+                    {...formItemLayout}
                     label="是否为textarea"
                 >
                     {getFieldDecorator('textarea', {
@@ -129,21 +175,41 @@ function CreateOptionForm({form, setTime, setCreateTopicModal, issueId}) {
                 </Form.Item> : ''
             }
             {
-                type === 'input' ? 
+                type === 'input' ?
                 <Form.Item
-                    label="(如果需要根据答案展示)请选择相应的题号和值"
-                >   
-                    <span style={{paddingLeft: '20px'}}>题号：</span>
-                    {getFieldDecorator('follow_number', { initialValue: 1 })(
-                        <InputNumber  />
+                    {...formItemLayout}
+                    label="是否Follow"
+                >
+                    {getFieldDecorator('switch_2', { valuePropName: 'checked' })(
+                    <Switch onChange={handleShowFollowChange} />
                     )}
-                    <span style={{paddingLeft: '20px'}}>值：</span>
+                </Form.Item> : ''
+            }
+            {
+                type === 'input' && showFollow ? 
+                <Form.Item
+                    {...formItemLayout}
+                    label="题号"
+                >   
+                    {getFieldDecorator('follow_number', { initialValue: 1 })(
+                        <InputNumber />
+                    )}
+                    
+                </Form.Item> : ''
+            }
+            {
+                type === 'input' && showFollow ?
+                <Form.Item
+                    {...formItemLayout}
+                    label="题值"
+                >
                     {getFieldDecorator('follow_value', { initialValue: 1 })(
                         <InputNumber />
                     )}
                 </Form.Item> : ''
             }
             <Form.Item
+                {...formItemLayout}
                 label="题目"            
                 hasFeedback
             >
@@ -156,6 +222,7 @@ function CreateOptionForm({form, setTime, setCreateTopicModal, issueId}) {
                 }
             </Form.Item>
             <Form.Item
+                {...formItemLayout}
                 label="是否必须"
             >
                 {getFieldDecorator('required', {
