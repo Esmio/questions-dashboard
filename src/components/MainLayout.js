@@ -13,7 +13,7 @@ function MainLayout({children}){
     }
 
     const handleMenuSelected = (item, key, selectedKeys) => {
-        console.log('item~selected', item, key, selectedKeys);
+        // console.log('item~selected', item, key, selectedKeys);
     }
 
     const logout = () => {
@@ -23,8 +23,6 @@ function MainLayout({children}){
     }
 
     const user = Cookies.getJSON('user');
-
-    console.log('user', user);
 
     return (
         <Layout>
@@ -40,18 +38,18 @@ function MainLayout({children}){
                 mode="inline" 
                 defaultSelectedKeys={[window.location.pathname]}
             >
-                <Menu.Item key="/question">
-                    <Link to="/question">
+                <Menu.Item key="/d/question">
+                    <Link to="/d/question">
                         <Icon type="user"/>
                         <span>问券管理</span>
                     </Link>
                 </Menu.Item>
-                <Menu.Item key="/result">
-                    <Link to="/result">
+                {/* <Menu.Item key="/d/result">
+                    <Link to="/d/result">
                         <Icon type="video-camera"/>
                         <span>问券结果</span>
                     </Link>
-                </Menu.Item>
+                </Menu.Item> */}
             </Menu>
             </Sider>
             <Layout>

@@ -31,7 +31,6 @@ function CreateOptionForm({form, setTime, setCreateTopicModal, issueId}) {
                     follow_value,
                 } = values;
                 const create = Date.now();
-                console.log('dborf-----', textarea);
                 const follow = {
                     number: follow_number,
                     value: follow_value,
@@ -58,7 +57,6 @@ function CreateOptionForm({form, setTime, setCreateTopicModal, issueId}) {
                 }).then(r => {
                     const { code, data } = r.data;
                     if(code === 0) {
-                        console.log('create~~~topic', r.data);
                         setTime(create);
                         setCreateTopicModal(false);
                     }

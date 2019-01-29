@@ -27,7 +27,6 @@ function CreateIssueForm({form, setTime, setCreateIssueModal}) {
                 }).then(r => {
                     const { code, data } = r.data;
                     if(code === 0) {
-                        console.log('create~~~issue', r.data);
                         setTime(create);
                         setCreateIssueModal(false);
                     }

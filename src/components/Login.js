@@ -9,34 +9,31 @@ function  NormalLoginForm(props) {
       e.preventDefault();
       props.form.validateFields((err, values) => {
         if (!err) {
-          console.log('Received values of form: ', values);
+            axios({
+                method: 'post',
+                url: `${host}/login`,
+                data: values,
+            }).then(r => {
+                const { code, data } = r.data;
+                if(code === 0) {
+                    const { token, user } = data;
+                    const HALFDAY = 1/2;
+                    Cookies.set('user', user, {
+                        expires: HALFDAY,
+                    });
+                    Cookies.set('token', token, {
+                        expires: HALFDAY,
+                    });
+                    window.location.href = '/question'
+                }
+            }).catch(e => {
+                if(!e.response) message.error(e.message);
+                else {
+                    const { data } = e.response;
+                    message.error(data.msg);
+                }
+            })
         }
-        axios({
-            method: 'post',
-            url: `${host}/login`,
-            data: values,
-        }).then(r => {
-            const { code, data } = r.data;
-            if(code === 0) {
-                console.log('data', data);
-                const { token, user } = data;
-                const HALFDAY = 1/2;
-                Cookies.set('user', user, {
-                    expires: HALFDAY,
-                });
-                Cookies.set('token', token, {
-                    expires: HALFDAY,
-                });
-                console.log('token:', token, 'user:', user);
-                window.location.href = '/question'
-            }
-        }).catch(e => {
-            if(!e.response) message.error(e.message);
-            else {
-                const { data } = e.response;
-                message.error(data.msg);
-            }
-        })
       });
     }
   

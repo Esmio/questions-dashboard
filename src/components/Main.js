@@ -7,8 +7,8 @@ function Main({}) {
     return (
         <main>
             <Switch>
-                <Route path="/question" component={Question} />
-                <Route path="/result" component={Result} />
+                <Route path="/d/question" component={Question} />
+                <Route path="/d/result" component={Result} />
             </Switch>
         </main>
     )

@@ -32,7 +32,6 @@ function Question({setActiveKey, setIssueId}) {
             const {code, data} = r.data;
             if(code === 0) {
                 setTime(Date.now());
-                console.log('deleted issue', data);
             }
         }).catch(e => {
             handleError(e);
@@ -137,13 +136,14 @@ function Question({setActiveKey, setIssueId}) {
             dataIndex: '_id',
             key: '_id',
             width: '140px',
-            render: id => (
+            render: (id, record) => (
                 <div>
                     <Button
                         size="small"
                         onClick={handleCheckDetail(id)}
                     >查看</Button>
                     <Button
+                        disabled={record.status !== 0}
                         size="small"
                         type="primary"
                         style={{
@@ -153,22 +153,25 @@ function Question({setActiveKey, setIssueId}) {
                     >
                         发布
                     </Button>
-                    <Popconfirm
-                        title="确定删除这个问卷吗？"
-                        onConfirm={deleteIssue(id)}
-                        okText="确定"
-                        cancelText="取消"
-                    >
-                        <Button
-                            size="small"
-                            type="danger"
-                            style={{
-                                marginLeft: '10px',
-                            }}
+                    {
+                        record.status === 0 ? 
+                        <Popconfirm
+                            title="确定删除这个问卷吗？"
+                            onConfirm={deleteIssue(id)}
+                            okText="确定"
+                            cancelText="取消"
                         >
-                            删除
-                        </Button>
-                    </Popconfirm>
+                            <Button
+                                size="small"
+                                type="danger"
+                                style={{
+                                    marginLeft: '10px',
+                                }}
+                            >
+                                删除
+                            </Button>
+                        </Popconfirm> : ''
+                    }
                 </div>
             )
         }

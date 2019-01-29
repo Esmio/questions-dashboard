@@ -76,7 +76,6 @@ export function convertResult(arr, topic) {
     })
     const json2csvParser = new Parser({fields});
     const csv = json2csvParser.parse(results);
-    console.log('csv', csv);
     return {
         fields,
         results,

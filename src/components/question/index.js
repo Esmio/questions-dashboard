@@ -11,10 +11,6 @@ function Question({}) {
     let [ activeKey, setActiveKey ] = useState('1')
     let [issueId, setIssueId] = useState();
 
-    useEffect(() => {
-        console.log('effect')
-    }, [])
-
     const callback = (key) => {
         setActiveKey(key)
     }

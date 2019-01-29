@@ -18,8 +18,8 @@ const logged = !!token;
 ReactDOM.render(
     <BrowserRouter>
         <Switch>
-            <Route exact path="/login" component={LoginPage} />
-            <AuthRoute path="/" logged={logged} component={Primary} />
+            <Route exact path="/d/login" component={LoginPage} />
+            <AuthRoute path="/d" logged={logged} component={Primary} />
         </Switch>
     </BrowserRouter>, 
 document.getElementById('root'));

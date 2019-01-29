@@ -59,7 +59,6 @@ function Topic({issue_id}) {
             const { code, data } = r.data;
             if(code === 0) {
                 setResult(data.results);
-                console.log('topic----result', data.results);
             }
         }).catch(e => {
             handleError(e);
