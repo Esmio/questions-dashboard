@@ -24,7 +24,7 @@ function  NormalLoginForm(props) {
                     Cookies.set('token', token, {
                         expires: HALFDAY,
                     });
-                    window.location.href = '/question'
+                    window.location.href = '/d/question'
                 }
             }).catch(e => {
                 if(!e.response) message.error(e.message);

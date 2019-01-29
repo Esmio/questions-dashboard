@@ -19,7 +19,7 @@ function MainLayout({children}){
     const logout = () => {
         Cookies.remove('user');
         Cookies.remove('token');
-        window.location.href = '/login';
+        window.location.href = '/d/login';
     }
 
     const user = Cookies.getJSON('user');
