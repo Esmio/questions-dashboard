@@ -10,11 +10,20 @@ export function convertResult(arr, topic) {
             value: number.toString(),
         }
     })
+    fields.unshift({
+        label: '提交时间',
+        value: 'createTime'
+    });
+    fields.unshift({
+        label: '用户ID',
+        value: 'id',
+    })
     const results = arr.map((item, index) => {
-        const dict = {};
         const { create_time, uid, items } = item;
         const result = JSON.parse(items);
         const collect = {};
+        collect['createTime'] = create_time;
+        collect['id'] = uid;
         topic.map((item, index) => {
             const {
                 type,
@@ -78,9 +87,11 @@ export function convertResult(arr, topic) {
 export function exportCsv (csv) {
     try {
         var link = document.createElement("a");
-        var csvContent = "data:text/csv;charset=GBK,\uFEFF" + csv;
-        var encodedUri = encodeURI(csvContent);
-        link.setAttribute("href", encodedUri);
+        // var csvContent = "data:text/csv;charset=GBK,\uFEFF" + csv;
+        // var encodedUri = encodeURI(csvContent);
+        // link.setAttribute("href", encodedUri);
+        var blob = new Blob(["\ufeff" + csv], {type: 'text/csv'}); //解决大文件下载失败
+        link.setAttribute("href", URL.createObjectURL(blob));
         link.setAttribute("download", "my_data.csv");
         document.body.appendChild(link); // Required for FF
         link.click(); // This will download the data file named "my_data.csv".
@@ -92,5 +103,3 @@ export function exportCsv (csv) {
     }
 }
 
-// var blob = new Blob(["\ufeff" + result], {type: 'text/csv'}); //解决大文件下载失败
-// link.setAttribute("href", URL.createObjectURL(blob));

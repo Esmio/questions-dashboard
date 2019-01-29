@@ -247,7 +247,9 @@ function Topic({issue_id}) {
                     添加题目
                 </Button>
                 <Button
+                    disabled={!topic || topic.length <= 0}
                     onClick={handleExportClicked}
+
                 >导出结果</Button>
             </div>
             <div
