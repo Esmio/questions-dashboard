@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import Cookies from 'js-cookie';
-import { message, Table, Button, Pagination, Modal, Popconfirm } from 'antd';
+import { Table, Button, Pagination, Modal, Popconfirm } from 'antd';
 import { host } from '../../config';
 import { handleError } from '../../utils';
 
@@ -117,6 +117,15 @@ function Question({setActiveKey, setIssueId}) {
                 const serverOffset = new Date().getTimezoneOffset() / 60; 
                 return dayjs(date).add(-8 - serverOffset, 'hour').format('YYYY-MM-DD HH:mm:ss');
             } 
+        }, {
+            title: '问卷链接',
+            dataIndex: '_id',
+            key: 'link',
+            width: '120px',
+            render: id => {
+                const link = `${host}/m?issue_id=${id}&uid=`;
+                return <a href={link} title={link} target="_blank">查看问卷</a>
+            }
         }, {
             title: '状态',
             dataIndex: 'status',

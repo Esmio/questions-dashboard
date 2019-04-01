@@ -1,5 +1,5 @@
 import { Parser } from 'json2csv';
-
+import dayjs from 'dayjs';
 import { places, ages } from './data/places';
 
 export function convertResult(arr, topic) {
@@ -22,7 +22,7 @@ export function convertResult(arr, topic) {
         const { create_time, uid, items } = item;
         const result = JSON.parse(items);
         const collect = {};
-        collect['createTime'] = create_time;
+        collect['createTime'] = dayjs(create_time).format('YYYY-MM-DD HH:mm:ss');
         collect['id'] = uid;
         topic.map((item, index) => {
             const {
@@ -32,7 +32,7 @@ export function convertResult(arr, topic) {
                 other_value,
             } = item;
             const valueObj = result[number]
-            if(type === 'choice') {
+            if(type === 'choice' && !!valueObj) {
                 let target_value = undefined;
                 const {value} = valueObj
                 if(value === other_value) target_value = valueObj.other;
@@ -42,12 +42,12 @@ export function convertResult(arr, topic) {
                 }
                 collect[number] = target_value;
             }
-            if(type === 'selector') {
+            if(type === 'selector' && !!valueObj) {
                 const { value } = valueObj;
                 const m = ages.find(option => option.value === value);
                 collect[number] = m.text;
             }
-            if(type === 'placepicker') {
+            if(type === 'placepicker' && !!valueObj) {
                 const { prov, city } = valueObj;
                 const provObj = places.find(place => place.id === prov);
                 const prov_name = provObj.name;
@@ -59,7 +59,7 @@ export function convertResult(arr, topic) {
                 const { value } = valueObj;
                 collect[number] = value;
             }
-            if(type === 'multiselector') {
+            if(type === 'multiselector' && !!valueObj) {
                 let target_value = '';
                 const {value} = valueObj;
                 value.map(v => {
